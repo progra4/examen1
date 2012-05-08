@@ -53,7 +53,7 @@ module Controllers
         accept = request.env['HTTP_ACCEPT'] || "text/plain"
         headers = {'Content-Type' => accept}
         if status < 400
-          if  accept == "text/plain"
+          if  accept == "text/plain" || accept == "*/*"
             [status, headers, body.is_a?(Array) ? body.map(&:as_text).join("\n") : body.as_text]
           elsif accept == "text/html"
             [status, headers, body]
@@ -64,9 +64,9 @@ module Controllers
           [status, {'Content-Type' => 'text/plain'}, body]
         end
       rescue NotFoundException
-        [404, ""]
+        [404, {'Content-Type' => 'text/plain'}, "Not found"]
       rescue 
-        [500, ""]
+        [500, {'Content-Type' => 'text/plain'}, "Server Error"]
       end
     end
   end
@@ -80,10 +80,10 @@ module Controllers
     end
 
     def index
-      unless request.params[:assignee]
+      unless request.params["assignee"]
         [200, Task.all]
       else
-        [200, Task.where(assignee: request.params[:assignee].downcase)]
+        [200, Task.where(assignee: request.params["assignee"].downcase)]
       end
     end
 
@@ -106,7 +106,7 @@ module Controllers
 
       task = Task.create(
         description: request.params["description"],
-        assignee:  request.params["assignee"],
+        assignee:  (request.params["assignee"].downcase rescue ""),
         priority: request.params["priority"] || 1
       )
 
@@ -124,8 +124,8 @@ module Controllers
 
       task.update(
         description: request.params["description"],
-        assignee:  request.params["assignee"],
-        priority: request.params["priority"]
+        assignee: (request.params["assignee"].nil? ? task.assignee : request.params["assignee"]),
+        priority: (request.params["priority"].nil? ? task.priority : request.params["priority"])
       )
 
       [200, task]
@@ -133,8 +133,12 @@ module Controllers
 
     def destroy
       task = Task.find(request.params["id"])
-      task.delete
-      [200, ""]
+      if task
+        task.delete
+        [200, task]
+      else
+        raise NotFoundException
+      end
     end
   end
 end

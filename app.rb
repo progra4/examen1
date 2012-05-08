@@ -11,7 +11,6 @@ class WebApp
     controller = TasksController.new(request)
     
     status, headers, body = controller.dispatch
-
     [
      status,
      #los valores de los headers *deben* ser String
