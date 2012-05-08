@@ -30,7 +30,7 @@ module Models
     end
 
     def delete
-      @@instances.delete_if{|instance|  instance.id = self.id }
+      @@instances.delete_if{|instance|  instance.id == self.id }
     end
 
     def update(opts)
@@ -40,7 +40,7 @@ module Models
     end
 
     def self.all
-      @@instances.sort_by(&:priority)
+      @@instances.sort_by(&:priority).reverse
     end
 
     def self.find(id)
@@ -54,7 +54,7 @@ module Models
         opts.collect do |attr, val|
           instance.send(attr) == val
         end.all?
-      end.sort_by(&:priority)
+      end.sort_by(&:priority).reverse
     end
 
     def self.exists?(opts)
