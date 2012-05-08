@@ -8,14 +8,14 @@ class WebApp
   def call(env)
 
     request = Rack::Request.new(env)
-    controller = QuotesController.new(request)
+    controller = TasksController.new(request)
     
-    status, body = controller.dispatch
+    status, headers, body = controller.dispatch
 
     [
      status,
      #los valores de los headers *deben* ser String
-     {'Content-Type' => 'text/plain', 'Content-Length' => body.size.to_s},
+     headers.merge({'Content-Length' => (body.size.to_s rescue 0)}),
      [body]
     ]
   end
